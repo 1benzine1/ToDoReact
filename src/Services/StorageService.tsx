@@ -1,11 +1,11 @@
-import { Task } from "../Models/TaskModel";
+import { ToDoListModel } from "../Models/ToDoListModel";
 
 
-const key = 'todoItems';
+const key = 'todoItems1';
 
 export class StorageService {
 
-    save = (todos: Task[]) => {
+    save = (todos: ToDoListModel[]) => {
         localStorage.setItem(key, JSON.stringify(todos));
     }
 

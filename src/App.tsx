@@ -1,14 +1,16 @@
 import './App.css';
 import { observer } from 'mobx-react-lite';
 import { observableTodoStore, ObservableTodoStore } from './ObservableTodoStore';
-import { TaskItem } from './Models/TaskItemModel';
+import { ToDoModel } from './Models/ToDoModel';
 import { observable } from 'mobx';
 import Button from '@material-ui/core/Button';
 
+const _ = require('lodash');
+
 const TodoList = observer((props: { store: ObservableTodoStore }) => {
-  const onNewTodo = (taskHeader: string) => {
-    let result = prompt('Task name') as string;
-    observableTodoStore.addTaskItem(taskHeader, new TaskItem(result, false));
+  const onNewTodo = (todoHeader: string) => {
+    let result = prompt('ToDo name') as string;
+    observableTodoStore.addTodoListItem(todoHeader, new ToDoModel(result, false));
   }
 
   const onRenameHeader = (oldHeader: string) => {
@@ -18,8 +20,8 @@ const TodoList = observer((props: { store: ObservableTodoStore }) => {
 
   const createNewToDoList = () => {
     const newHeader = prompt('Input header') as string;
-    const newTask = prompt('Input task') as string;
-    observableTodoStore.createNewToDoList(newHeader, newTask);
+    const newTodo = prompt('Input task') as string;
+    observableTodoStore.createNewToDoList(newHeader, newTodo);
   }
 
   return (
@@ -28,15 +30,15 @@ const TodoList = observer((props: { store: ObservableTodoStore }) => {
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', border: '1px solid black', marginTop: '10px' }}>
         <div>
           <ul>
-            {props.store.todos.map((task, idx) => (
-              <div style={{ display: 'list-item', alignItems: 'end', border: '1px solid black', marginTop: '10px' }}>
+            {props.store.todos.map((todoList) => (
+              <div key={todoList.id} style={{ display: 'list-item', alignItems: 'end', border: '1px solid black', marginTop: '10px' }}>
                 <div style={{ display: 'list-item', alignItems: 'center' }}>
-                  <Button variant="contained" style={{ marginRight: '1em' }} onClick={() => observableTodoStore.deleteToDoList(task.header)} >Delete ToDo list</Button>
-                  <Button variant="contained" style={{ marginRight: '1em' }} onClick={() => onNewTodo(task.header)}>Add ToDo item</Button>
+                  <Button variant="contained" style={{ marginRight: '1em' }} onClick={() => observableTodoStore.deleteToDoList(todoList.header)} >Delete ToDo list</Button>
+                  <Button variant="contained" style={{ marginRight: '1em' }} onClick={() => onNewTodo(todoList.header)}>Add ToDo item</Button>
                   <p style={{ marginRight: '10%' }} >(double-click on item for edit)</p>
                 </div>
-                <p onDoubleClick={() => onRenameHeader(task.header)}>{task.header}</p>
-                <TodoView taskItems={task.taskItems} key={idx} />
+                <p onDoubleClick={() => onRenameHeader(todoList.header)}>{todoList.header}</p>
+                <TodoView todos={todoList.todoItems} key={todoList.id} />
               </div>
             )
             )}
@@ -47,28 +49,31 @@ const TodoList = observer((props: { store: ObservableTodoStore }) => {
   );
 })
 
-const TodoView = observer((props: { taskItems: TaskItem[], key?: number }) => {
-  const onToggleCompleted = (itemName: string) => {
-    let index = props.taskItems.findIndex(item => item.name === itemName);
-    props.taskItems[index].isDone = !props.taskItems[index].isDone;
+const TodoView = observer((props: { todos: ToDoModel[], key?: number }) => {
+  const onToggleCompleted = (id: number) => {
+    observableTodoStore.onToggleCompleted(id);
 
-    if(props.taskItems.find(i => i.isDone) && props.taskItems.find(i => !i.isDone)){
-      props.taskItems.sort((i, j) => Number(i.isDone) - Number(j.isDone));
-    }
-    else{
-      props.taskItems.sort((x, y) =>  x.name.length - y.name.length);
-    }
+
+    // let index = props.todos.findIndex(item => item.id === id);
+    // props.todos[index].isDone = !props.todos[index].isDone;
+
+    // if(props.todos.find(i => i.isDone) && props.todos.find(i => !i.isDone)){
+    //   props.todos.sort((i, j) => Number(i.isDone) - Number(j.isDone));
+    // }
+    // else{
+    //   props.todos.sort((x, y) =>  x.name.length - y.name.length);
+    // }
   }
 
   const onRenameTask = (oldName: string) => {
-    let index = props.taskItems.findIndex(i => i.name === oldName);
-    props.taskItems[index].name = prompt('New name', oldName) || oldName;
+    let index = props.todos.findIndex(i => i.name === oldName);
+    props.todos[index].name = prompt('New name', oldName) || oldName;
   }
 
   const listItems = observable(
-    props.taskItems.map(i => <li>
+    props.todos?.map(i => <li key={i.id}>
       <div>
-        <input name="isDoneTask" type='checkbox' className="strikethrough" checked={i.isDone} onChange={() => onToggleCompleted(i.name)} />
+        <input name="isDoneTask" type='checkbox' className="strikethrough" checked={i.isDone} onChange={() => onToggleCompleted(i.id)} />
         <label htmlFor="isDoneTask" onDoubleClick={() => onRenameTask(i.name)}>{i.name}</label>
         <button className="deleteToDoItem" onClick={() => observableTodoStore.deleteToDoItem(i.name)}>delete item</button>
       </div>
