@@ -33,8 +33,8 @@ export class ObservableTodoStore {
     }
   }
 
-  addTodoListItem(id: string, todo: ToDoModel) {
-    this.todos.find(e => e.id === id)?.todoItems.push(todo);
+  addTodoListItem(id: string, todoName: string) {
+    this.todos.find(e => e.id === id)?.todoItems.push(new ToDoModel(todoName, false));
     storageService.save(this.todos);
   }
 
